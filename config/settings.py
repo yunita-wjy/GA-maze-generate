@@ -1,0 +1,21 @@
+# Dummy testing
+GRID_WIDTH = 20
+GRID_HEIGHT = 20
+
+START = (0, 0)
+GOAL = (9, 9)
+
+EMPTY = 0
+WALL = 1
+START_CELL = 5
+GOAL_CELL = 6
+
+POPULATION_SIZE = 20
+GENERATIONS = 50
+
+MUTATION_RATE = 0.1
+
+# Fitness weights
+W_LENGTH = 1.0
+W_TURN = 1.0
+W_EFFORT = 0.5

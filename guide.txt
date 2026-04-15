@@ -1,0 +1,34 @@
+ga-maze-solver/
+│
+├── main.py                # entry point (run GA)
+│
+├── config/
+│   └── settings.py        # parameter (grid size, weights, dll)
+│
+├── maze/
+│   ├── grid.py            # representasi maze
+│   ├── generator.py       # convert kromosom → maze
+│   └── validator.py       # BFS validation
+│
+├── ga/
+│   ├── chromosome.py      # representasi gen & individu
+│   ├── population.py      # init population
+│   ├── selection.py       # tournament + elitism
+│   ├── crossover.py       # cut & splice
+│   ├── mutation.py        # mutation ops
+│   └── fitness.py         # hitung fitness
+│
+├── npc/
+│   ├── astar.py           # A* algorithm
+│   └── metrics.py         # hitung L, T, E
+│
+├── utils/
+│   └── helpers.py
+│
+├── visualization/
+│   └── plotter.py         # matplotlib / animation
+│
+├── tests/                 # optional
+│
+├── requirements.txt
+└── README.md
