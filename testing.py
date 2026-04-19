@@ -10,10 +10,8 @@ from config import settings
 #
 # maze.print_grid()
 
-c = Chromosome([
-    (2, 2, 5, 0),
-    (5, 5, 4, 1),
-])
+c = Chromosome()
+c.random_init()
 
 maze = generate_maze(c)
 
