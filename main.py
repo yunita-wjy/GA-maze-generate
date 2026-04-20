@@ -261,10 +261,14 @@ def main():
                 
                 structural_penalty = m.check_structure()
                 overlap_penalty = m.overlap_count * 5 
-                unreachable_penalty = unreachable_cells * 10 
                 
-                m.fitness = base_fitness + wall_bonus - density_penalty - under_density_penalty - structural_penalty - overlap_penalty - unreachable_penalty
-                m.fitness = max(0.1, m.fitness) 
+                m.fitness = base_fitness + wall_bonus - density_penalty - under_density_penalty - structural_penalty - overlap_penalty
+                
+                if unreachable_cells > 0:
+                    # Kalau ada ruang terkurung, skor total langsung didiskon 80%!
+                    m.fitness *= 0.2 
+                    
+                m.fitness = max(0.1, m.fitness)
 
         # Tahap 2: Proses Evolusi (Seleksi, Crossover, Mutasi)
         population = evolve(population)
