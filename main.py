@@ -18,7 +18,7 @@ GEN_LIMIT = 200                 # Batas maksimum generasi
 # ==========================================
 class Maze:
     def __init__(self, chromosome=None):
-        # Genotype: List of [x, y, length, orientation (0=H, 1=V)]
+        # Genotype: List of [x, y, length, orientation (0=Horizontal, 1=Vertical)]
         self.chromosome = chromosome if chromosome is not None else self.generate_initial()
         
         # Phenotype & Evaluation variables
@@ -34,7 +34,7 @@ class Maze:
         self.decode()
 
     def generate_initial(self):
-        """Membuat populasi awal dengan 20-30 garis tembok acak"""
+        # Membuat populasi awal dengan 20-30 garis tembok acak
         return [
             [random.randint(0, GRID_SIZE-1), random.randint(0, GRID_SIZE-1), 
              random.randint(5, 12), random.randint(0, 1)] 
@@ -42,7 +42,7 @@ class Maze:
         ]
 
     def decode(self):
-        """Menerjemahkan Kromosom menjadi Grid 2D dengan efek Simetris (Cermin 180 Derajat)"""
+        # Menerjemahkan Kromosom menjadi Grid 2D dengan efek Simetris (Cermin 180 Derajat)
         self.grid = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
         self.overlap_count = 0
         
@@ -55,7 +55,7 @@ class Maze:
                 mx = (GRID_SIZE - 1) - nx
                 my = (GRID_SIZE - 1) - ny
                 
-                # --- PROSES TEMBOK ASLI ---
+                # PROSES TEMBOK ASLI
                 if 0 <= nx < GRID_SIZE and 0 <= ny < GRID_SIZE:
                     in_start_zone = (nx < 2 and ny < 2)
                     in_finish_zone = (nx >= GRID_SIZE-2 and ny >= GRID_SIZE-2)
@@ -65,7 +65,7 @@ class Maze:
                             self.overlap_count += 1
                         self.grid[ny][nx] = 1
 
-                # --- PROSES TEMBOK PANTULAN ---
+                # PROSES TEMBOK PANTULAN
                 if 0 <= mx < GRID_SIZE and 0 <= my < GRID_SIZE:
                     m_in_start_zone = (mx < 2 and my < 2)
                     m_in_finish_zone = (mx >= GRID_SIZE-2 and my >= GRID_SIZE-2)
@@ -76,7 +76,7 @@ class Maze:
                         self.grid[my][mx] = 1
 
     def check_reachability(self):
-        """Algoritma Flood-Fill untuk mendeteksi ruang kosong yang terkurung tembok"""
+        # Algoritma Flood-Fill untuk mendeteksi ruang kosong yang terkurung tembok
         reachable = set()
         stack = [(0, 0)] # Mulai dari Start (0,0)
         empty_cells = 0
@@ -104,7 +104,7 @@ class Maze:
         return unreachable_count 
 
     def check_structure(self):
-        """Mengevaluasi pelanggaran arsitektur (Blok 2x2, Diagonal, Tembok Terisolasi)"""
+        # Mengevaluasi pelanggaran arsitektur (Blok 2x2, Diagonal, Tembok Terisolasi)
         block_2x2_pen = 0
         diagonal_pen = 0
         isolated_pen = 0
@@ -138,7 +138,7 @@ class Maze:
         return block_2x2_pen + diagonal_pen + isolated_pen
 
     def draw(self, screen):
-        """Fungsi rendering visual menggunakan Pygame"""
+        # Fungsi rendering visual menggunakan Pygame
         # Render Map & Tembok
         for y in range(GRID_SIZE):
             for x in range(GRID_SIZE):
@@ -160,7 +160,7 @@ class Maze:
 # 3. ALGORITMA EVALUASI (A* PATHFINDING)
 # ==========================================
 def a_star(maze):
-    """Mencari jalur terpendek dan mengembalikan data analisis rute"""
+    # Mencari jalur terpendek dan mengembalikan data analisis rute
     start, goal = (0, 0), (GRID_SIZE-1, GRID_SIZE-1)
     # Queue simpan: (f_score, current_node, path, last_direction)
     queue = [(0 + abs(goal[0]-start[0]) + abs(goal[1]-start[1]), start, [start], None)]
@@ -197,7 +197,7 @@ def a_star(maze):
 # 4. OPERATOR GENETIKA (MUTASI & CROSSOVER)
 # ==========================================
 def mutate(maze):
-    """Melakukan mutasi genetik dengan probabilitas 40%"""
+    # Melakukan mutasi genetik dengan probabilitas 40%
     if random.random() < 0.4: 
         r = random.random()
         
@@ -217,7 +217,7 @@ def mutate(maze):
             maze.chromosome.pop(random.randint(0, len(maze.chromosome)-1))
 
 def evolve(population):
-    """Fungsi utama seleksi alam dan reproduksi"""
+    # Fungsi utama seleksi alam dan reproduksi
     # Pengurutan berdasar fitness (Terbaik di indeks 0)
     population.sort(key=lambda x: x.fitness, reverse=True)
     new_pop = [population[0]] # Elitism: Pertahankan juara bertahan
@@ -261,7 +261,7 @@ def main():
             if event.type == pygame.QUIT: 
                 running = False
 
-        # --- TAHAP 1: EVALUASI FITNESS POPULASI ---
+        # TAHAP 1: EVALUASI FITNESS POPULASI
         for m in population:
             # Pengecekan Hard Constraint: Ruang terkurung (Flood Fill)
             unreachable_cells = m.check_reachability()
@@ -302,11 +302,11 @@ def main():
                 m.fitness = base_fitness + wall_bonus - density_penalty - under_density_penalty - structural_penalty - overlap_penalty - unreachable_penalty
                 m.fitness = max(0.1, m.fitness) # Mencegah skor bernilai negatif
 
-        # --- TAHAP 2: PROSES EVOLUSI ---
+        # TAHAP 2: PROSES EVOLUSI
         population = evolve(population)
         best_maze = population[0] 
 
-        # --- TAHAP 3: VISUALISASI ---
+        # TAHAP 3: VISUALISASI
         screen.fill((255, 255, 255))
         best_maze.draw(screen)
         pygame.display.flip()
