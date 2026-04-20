@@ -254,10 +254,12 @@ def main():
                 wall_bonus = wall_count * 2.0 
                 
                 density_penalty = 0
-                if wall_count > 160: density_penalty = (wall_count - 160) * 5 
+                if wall_count > 160: 
+                    density_penalty = (wall_count - 160) * 5 
                 
                 under_density_penalty = 0
-                if wall_count < 100: under_density_penalty = (100 - wall_count) * 10 
+                if wall_count < 100: 
+                    under_density_penalty = (100 - wall_count) * 10 
                 
                 structural_penalty = m.check_structure()
                 overlap_penalty = m.overlap_count * 5 
