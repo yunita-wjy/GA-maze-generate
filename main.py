@@ -40,8 +40,9 @@ class Maze:
         self.grid = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
         self.overlap_count = 0
         
-        for x, y, length, orient in self.chromosome:
+        for x, y, length, orient in self.chromosome: #ini loop tiap gene
             for i in range(length):
+                # 0 = horizontal, 1 = vertical
                 nx, ny = (x + i, y) if orient == 0 else (x, y + i)
                 mx = (GRID_SIZE - 1) - nx
                 my = (GRID_SIZE - 1) - ny
@@ -122,7 +123,9 @@ class Maze:
                 center = (pos[0]*CELL_SIZE + CELL_SIZE//2, pos[1]*CELL_SIZE + CELL_SIZE//2)
                 pygame.draw.circle(screen, (52, 152, 219), center, CELL_SIZE//3)
 
+        # start
         pygame.draw.rect(screen, (46, 204, 113), (0, 0, CELL_SIZE, CELL_SIZE))
+        # goal
         pygame.draw.rect(screen, (231, 76, 60), ((GRID_SIZE-1)*CELL_SIZE, (GRID_SIZE-1)*CELL_SIZE, CELL_SIZE, CELL_SIZE))
 
 # ==========================================
@@ -264,7 +267,7 @@ def main():
                     base_fitness *= 0.1 
                 
                 wall_count = sum(row.count(1) for row in m.grid)
-                wall_bonus = wall_count * 2.0 
+                wall_bonus = wall_count * 2.0
                 
                 density_penalty = 0
                 if wall_count > 160: 
