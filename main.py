@@ -3,8 +3,9 @@ import random
 import heapq
 import sys
 
+# ==========================================
 # 1. Konfigurasi & Parameter Global
-
+# ==========================================
 GRID_SIZE = 20
 CELL_SIZE = 30
 WIDTH = GRID_SIZE * CELL_SIZE   # 600 pixel
@@ -13,9 +14,9 @@ HEIGHT = GRID_SIZE * CELL_SIZE  # 600 pixel
 POP_SIZE = 40                   # Jumlah individu per generasi
 GEN_LIMIT = 200                 # Batas maksimum generasi
 
-
+# ==========================================
 # 2. Kromosom & Representasi Maze
-
+# ==========================================
 class Maze:
     def __init__(self, chromosome=None):
         self.chromosome = chromosome if chromosome is not None else self.generate_initial()
@@ -86,7 +87,7 @@ class Maze:
     def check_structure(self):
         block_2x2_pen = 0
         diagonal_pen = 0
-        isolated_pen = 0
+        isolated_pen = 0    
 
         for y in range(GRID_SIZE - 1):
             for x in range(GRID_SIZE - 1):
@@ -97,7 +98,7 @@ class Maze:
                 elif (self.grid[y][x] == 0 and self.grid[y+1][x+1] == 0 and self.grid[y][x+1] == 1 and self.grid[y+1][x] == 1):
                     diagonal_pen += 15
 
-        for y in range(GRID_SIZE):
+        for y in range(GRID_SIZE): 
             for x in range(GRID_SIZE):
                 if self.grid[y][x] == 1:
                     neighbors = 0
@@ -124,8 +125,9 @@ class Maze:
         pygame.draw.rect(screen, (46, 204, 113), (0, 0, CELL_SIZE, CELL_SIZE))
         pygame.draw.rect(screen, (231, 76, 60), ((GRID_SIZE-1)*CELL_SIZE, (GRID_SIZE-1)*CELL_SIZE, CELL_SIZE, CELL_SIZE))
 
+# ==========================================
 # 3. Algoritma Evaluasi (A* Pathfinding)
-
+# ==========================================
 def a_star(maze):
     start, goal = (0, 0), (GRID_SIZE-1, GRID_SIZE-1)
     queue = [(0 + abs(goal[0]-start[0]) + abs(goal[1]-start[1]), start, [start], None)]
@@ -156,8 +158,9 @@ def a_star(maze):
     
     return [], 0, 0, 0 
 
+# ==========================================
 # 4. Operator Genetika: Mutasi & Evolusi
-
+# ==========================================
 def mutate(maze):
     if random.random() < 0.4: 
         r = random.random()
@@ -168,7 +171,7 @@ def mutate(maze):
         elif r < 0.8: 
             maze.chromosome.append([random.randint(0,GRID_SIZE-1), random.randint(0,GRID_SIZE-1), 
                                     random.randint(5,12), random.randint(0,1)])
-        elif len(maze.chromosome) > 5: 
+        elif len(maze.chromosome) > 5:
             maze.chromosome.pop(random.randint(0, len(maze.chromosome)-1))
 
 def evolve(population):
@@ -187,6 +190,14 @@ def evolve(population):
         if p1.chromosome[:cp1]: child_chrom.extend(p1.chromosome[:cp1])
         if p2.chromosome[cp2:]: child_chrom.extend(p2.chromosome[cp2:])
         
+        # --- REPAIR MECHANISM (Mekanisme Keamanan Panjang Gen) ---
+        if len(child_chrom) > 45:
+            child_chrom = child_chrom[:45] 
+        elif len(child_chrom) < 20:
+            kekurangan = 20 - len(child_chrom)
+            sisa_bapak = p1.chromosome[cp1:]
+            child_chrom.extend(sisa_bapak[:kekurangan])
+        
         child = Maze(child_chrom)
         mutate(child)
         child.decode() 
@@ -194,7 +205,9 @@ def evolve(population):
         
     return new_pop
 
+# ==========================================
 # 5. Main Loop & Visualisasi
+# ==========================================
 def main():
     print("========================================")
     print("  GA MAZE GENERATOR - DIFFICULTY MENU   ")
@@ -243,10 +256,10 @@ def main():
             if steps == 0: 
                 m.fitness = 0.001 
             else: 
-                # 1. Skor Dasar (Menggunakan Variabel Dinamis dari Input)
+                # Skor Dasar
                 base_fitness = (1.0 * steps) + (w_turns * turns) + (1.0 * explored)
                 
-                # Hukuman jalur pendek (hanya aktif di Mode Sulit)
+                # Hukuman jalur pendek
                 if steps < penalty_limit: 
                     base_fitness *= 0.1 
                 
@@ -255,11 +268,11 @@ def main():
                 
                 density_penalty = 0
                 if wall_count > 160: 
-                    density_penalty = (wall_count - 160) * 5 
+                    density_penalty = (wall_count - 160) * 5
                 
                 under_density_penalty = 0
                 if wall_count < 100: 
-                    under_density_penalty = (100 - wall_count) * 10 
+                    under_density_penalty = (100 - wall_count) * 10
                 
                 structural_penalty = m.check_structure()
                 overlap_penalty = m.overlap_count * 5 
@@ -267,16 +280,15 @@ def main():
                 m.fitness = base_fitness + wall_bonus - density_penalty - under_density_penalty - structural_penalty - overlap_penalty
                 
                 if unreachable_cells > 0:
-                    # Kalau ada ruang terkurung, skor total langsung didiskon 80%!
                     m.fitness *= 0.2 
                     
                 m.fitness = max(0.1, m.fitness)
 
-        # Tahap 2: Proses Evolusi (Seleksi, Crossover, Mutasi)
+        # Tahap 2: Proses Evolusi
         population = evolve(population)
         best_maze = population[0] 
 
-        # Tahap 3: Visualisasi & Logging
+        # Tahap 3: Visualisasi
         screen.fill((255, 255, 255))
         best_maze.draw(screen)
         pygame.display.flip()
