@@ -29,11 +29,21 @@ class Maze:
         self.decode()
 
     def generate_initial(self):
-        return [
-            [random.randint(0, GRID_SIZE-1), random.randint(0, GRID_SIZE-1), 
-             random.randint(5, 12), random.randint(0, 1)] 
-            for _ in range(random.randint(20, 30))
-        ]
+        num_genes = random.randint(20, 30)
+
+        genes = []
+        for _ in range(num_genes):
+            x = random.randint(0, GRID_SIZE - 1)
+            y = random.randint(0, GRID_SIZE - 1)
+            if random.random() < 0.6:
+                length = random.randint(2, 5)  # mayoritas pendek
+            else:
+                length = random.randint(6, 10)  # sedikit panjang
+            orientation = random.randint(0, 1)
+
+            genes.append([x, y, length, orientation])  # pakai tuple
+
+        return genes
 
     def decode(self):
         self.grid = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
@@ -211,14 +221,26 @@ def main():
     if choice == '1':
         w_turns = -2.0      # Hukuman untuk belokan
         penalty_limit = 0   # Tidak ada hukuman jalur pendek
+        target_wall = 100
+        tolerance = 20
+        min_turns = 5
+        max_turns = 10
         print(">> Mode Mudah diaktifkan! Memulai simulasi...\n")
     elif choice == '2':
         w_turns = 1.0       # Belokan dinilai normal
         penalty_limit = 0   # Tidak ada hukuman jalur pendek
+        target_wall = 120
+        tolerance = 15
+        min_turns = 10
+        max_turns = 20
         print(">> Mode Sedang diaktifkan! Memulai simulasi...\n")
     else:
         w_turns = 5.0       # Hadiah besar untuk belokan
         penalty_limit = 50  # Hukuman pemotongan skor jika langkah < 50
+        target_wall = 140
+        tolerance = 10
+        min_turns = 20
+        max_turns = 40
         print(">> Mode Sulit diaktifkan! Memulai simulasi...\n")
 
     # Inisiasi Pygame & Setup Window
@@ -252,23 +274,36 @@ def main():
                 # Hukuman jalur pendek (hanya aktif di Mode Sulit)
                 if steps < penalty_limit: 
                     base_fitness *= 0.1 
-                
+
+                # turn penalty
+                turn_penalty = 0
+
+                if m.turns < min_turns:
+                    turn_penalty = (min_turns - m.turns) * 15
+
+                elif m.turns > max_turns:
+                    turn_penalty = (m.turns - max_turns) * 10
+
                 wall_count = sum(row.count(1) for row in m.grid)
                 wall_bonus = wall_count * 2.0
-                
+
+                lower = target_wall - tolerance
+                upper = target_wall + tolerance
+
                 density_penalty = 0
-                if wall_count > 160: 
-                    density_penalty = (wall_count - 160) * 5 
+                if wall_count > upper:
+                    density_penalty = abs(wall_count - upper) * 5
                 
                 under_density_penalty = 0
-                if wall_count < 100: 
-                    under_density_penalty = (100 - wall_count) * 10 
+                if wall_count < lower:
+                    under_density_penalty = abs(lower - wall_count) * 10
                 
                 structural_penalty = m.check_structure()
                 overlap_penalty = m.overlap_count * 5 
-                
-                m.fitness = base_fitness + wall_bonus - density_penalty - under_density_penalty - structural_penalty - overlap_penalty
-                
+
+                penalty = density_penalty + under_density_penalty + structural_penalty + overlap_penalty + turn_penalty
+                m.fitness = base_fitness + wall_bonus - penalty
+
                 if unreachable_cells > 0:
                     # Kalau ada ruang terkurung, skor total langsung didiskon 80%!
                     m.fitness *= 0.2 

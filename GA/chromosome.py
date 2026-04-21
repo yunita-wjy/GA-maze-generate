@@ -15,7 +15,10 @@ class Chromosome:
         for _ in range(num_genes):
             x = random.randint(0, GRID_WIDTH - 1)
             y = random.randint(0, GRID_HEIGHT - 1)
-            length = random.randint(2, max_length)
+            if random.random() < 0.7:
+                length = random.randint(2, 5)  # mayoritas pendek
+            else:
+                length = random.randint(6, 10)  # sedikit panjang
             orientation = random.randint(0, 1)
 
             genes.append((x, y, length, orientation))  # pakai tuple
