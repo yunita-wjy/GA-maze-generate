@@ -42,16 +42,23 @@ class Maze:
             y = random.randint(0, GRID_SIZE - 1)
 
             if random.random() < 0.6:
-                length = random.randint(2, 5) #mayoritas pendek
+                length = random.randint(4, 6) #mayoritas pendek
             else:
-                length = random.randint(6, 10) #mayoritas panjang
+                length = random.randint(7, 12) #mayoritas panjang
 
             orientation = random.randint(0, 1)
 
+            # STEP 1: validate boundary
             gene = self.validate_gene([x, y, length, orientation])
+            if gene is None:
+                continue
 
-            if gene is not None:
-                genes.append(gene)
+            # STEP 2: cek overlap
+            if self.is_overlap(gene, genes):
+                continue
+
+            # STEP 3: lolos semua → masuk
+            genes.append(gene)
 
         return genes
 
@@ -79,6 +86,23 @@ class Maze:
         length = min(length, max_len)
 
         return [x, y, length, orientation]
+
+    def is_overlap(self, gene, existing_genes):
+        x, y, length, orientation = gene
+
+        new_cells = set()
+        for i in range(length):
+            nx, ny = (x + i, y) if orientation == 0 else (x, y + i)
+            new_cells.add((nx, ny))
+
+        for g in existing_genes:
+            gx, gy, gl, go = g
+            for i in range(gl):
+                ex, ey = (gx + i, gy) if go == 0 else (gx, gy + i)
+                if (ex, ey) in new_cells:
+                    return True
+
+        return False
 
     def decode(self):
         self.grid = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
