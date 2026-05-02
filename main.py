@@ -162,8 +162,12 @@ def a_star(maze):
     return [], 0, 0, 0 
 
 # ==========================================
-# 4. Operator Genetika: Mutasi & Evolusi
+# 4. Utility: Duplicate chromosome handling
 # ==========================================
+def chromosome_key(chromosome):
+    return tuple(tuple(gene) for gene in chromosome)
+
+
 def mutate(maze):
     if random.random() < 0.4: 
         r = random.random()
@@ -179,7 +183,8 @@ def mutate(maze):
 
 def evolve(population):
     population.sort(key=lambda x: x.fitness, reverse=True)
-    new_pop = [population[0]] 
+    new_pop = [population[0]]
+    seen = {chromosome_key(population[0].chromosome)}
 
     while len(new_pop) < POP_SIZE:
         tournament = random.sample(population, 10)
@@ -200,10 +205,20 @@ def evolve(population):
             kekurangan = 20 - len(child_chrom)
             sisa_bapak = p1.chromosome[cp1:]
             child_chrom.extend(sisa_bapak[:kekurangan])
-        
+
+        child_key = chromosome_key(child_chrom)
+        if child_key in seen:
+            continue
+
         child = Maze(child_chrom)
         mutate(child)
-        child.decode() 
+        child.decode()
+        
+        child_key = chromosome_key(child.chromosome)
+        if child_key in seen:
+            continue
+
+        seen.add(child_key)
         new_pop.append(child)
         
     return new_pop
@@ -240,7 +255,16 @@ def main():
     pygame.display.set_caption(f"GA Maze Evaluator - Mode: {'Mudah' if choice=='1' else 'Sedang' if choice=='2' else 'Sulit'}")
     clock = pygame.time.Clock()
 
-    population = [Maze() for _ in range(POP_SIZE)]
+    population = []
+    seen = set()
+    while len(population) < POP_SIZE:
+        m = Maze()
+        key = chromosome_key(m.chromosome)
+        if key in seen:
+            continue
+        seen.add(key)
+        population.append(m)
+
     gen_count = 0
     running = True
 
