@@ -30,20 +30,55 @@ class Maze:
 
     def generate_initial(self):
         num_genes = random.randint(20, 30)
-
         genes = []
-        for _ in range(num_genes):
+
+        max_attempt = 1000
+        attempt = 0
+
+        while len(genes) < num_genes and attempt < max_attempt:
+            attempt += 1
+
             x = random.randint(0, GRID_SIZE - 1)
             y = random.randint(0, GRID_SIZE - 1)
+
             if random.random() < 0.6:
-                length = random.randint(2, 5)  # mayoritas pendek
+                length = random.randint(2, 5) #mayoritas pendek
             else:
-                length = random.randint(6, 10)  # sedikit panjang
+                length = random.randint(6, 10) #mayoritas panjang
+
             orientation = random.randint(0, 1)
 
-            genes.append([x, y, length, orientation])  # pakai tuple
+            gene = self.validate_gene([x, y, length, orientation])
+
+            if gene is not None:
+                genes.append(gene)
 
         return genes
+
+    def validate_gene(self, gene):
+        x, y, length, orientation = gene
+
+        if orientation == 0:  # horizontal
+            if x + length > GRID_SIZE:
+                # coba geser ke kiri
+                x = GRID_SIZE - length
+        else:  # vertical
+            if y + length > GRID_SIZE:
+                # coba geser ke atas
+                y = GRID_SIZE - length
+
+        # kalau masih out of bound (kasus length > grid)
+        if orientation == 0:
+            max_len = GRID_SIZE - x
+        else:
+            max_len = GRID_SIZE - y
+
+        if max_len < 2:
+            return None
+
+        length = min(length, max_len)
+
+        return [x, y, length, orientation]
 
     def decode(self):
         self.grid = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
@@ -55,7 +90,7 @@ class Maze:
                 nx, ny = (x + i, y) if orient == 0 else (x, y + i)
                 mx = (GRID_SIZE - 1) - nx
                 my = (GRID_SIZE - 1) - ny
-                
+
                 # Tembok Utama
                 if 0 <= nx < GRID_SIZE and 0 <= ny < GRID_SIZE:
                     in_start_zone = (nx < 2 and ny < 2)
@@ -146,7 +181,7 @@ def a_star(maze):
 
     while queue:
         f, current, path, last_dir = heapq.heappop(queue)
-        
+
         if current in visited and visited[current] <= f: continue
         visited[current] = f
 
@@ -164,24 +199,27 @@ def a_star(maze):
             nx, ny = x + dx, y + dy
             if 0 <= nx < GRID_SIZE and 0 <= ny < GRID_SIZE and maze.grid[ny][nx] == 0:
                 g = len(path)
-                h = abs(nx - goal[0]) + abs(ny - goal[1]) 
+                h = abs(nx - goal[0]) + abs(ny - goal[1])
                 heapq.heappush(queue, (g + h, (nx, ny), path + [(nx, ny)], (dx, dy)))
-    
-    return [], 0, 0, 0 
+
+    return [], 0, 0, 0
 
 # 4. Operator Genetika: Mutasi & Evolusi
 
 def mutate(maze):
     if random.random() < 0.4: 
         r = random.random()
+        # Point Mutation
         if r < 0.3 and len(maze.chromosome) > 0: 
             idx = random.randint(0, len(maze.chromosome)-1)
             maze.chromosome[idx][0] = random.randint(0, GRID_SIZE-1)
             maze.chromosome[idx][1] = random.randint(0, GRID_SIZE-1)
+        # Addition Mutation
         elif r < 0.8: 
             maze.chromosome.append([random.randint(0,GRID_SIZE-1), random.randint(0,GRID_SIZE-1), 
                                     random.randint(5,12), random.randint(0,1)])
-        elif len(maze.chromosome) > 5: 
+        # Deletion Mutation
+        elif len(maze.chromosome) > 5:
             maze.chromosome.pop(random.randint(0, len(maze.chromosome)-1))
 
 def evolve(population):
@@ -221,7 +259,7 @@ def main():
     if choice == '1':
         w_turns = -2.0      # Hukuman untuk belokan
         penalty_limit = 0   # Tidak ada hukuman jalur pendek
-        target_wall = 100
+        target_wall = 80
         tolerance = 20
         min_turns = 5
         max_turns = 10
@@ -229,7 +267,7 @@ def main():
     elif choice == '2':
         w_turns = 1.0       # Belokan dinilai normal
         penalty_limit = 0   # Tidak ada hukuman jalur pendek
-        target_wall = 120
+        target_wall = 100
         tolerance = 15
         min_turns = 10
         max_turns = 20
@@ -237,7 +275,7 @@ def main():
     else:
         w_turns = 5.0       # Hadiah besar untuk belokan
         penalty_limit = 50  # Hukuman pemotongan skor jika langkah < 50
-        target_wall = 140
+        target_wall = 120
         tolerance = 10
         min_turns = 20
         max_turns = 40
