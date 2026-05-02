@@ -30,11 +30,16 @@ class Maze:
         self.decode()
 
     def generate_initial(self):
-        return [
-            [random.randint(0, GRID_SIZE-1), random.randint(0, GRID_SIZE-1), 
-             random.randint(5, 12), random.randint(0, 1)] 
-            for _ in range(random.randint(20, 30))
-        ]
+        #looping for a random amount
+        gene=[]
+        for i in range(random.randint(20,30)):
+            new_gene = [random.randint(0, GRID_SIZE-1), random.randint(0, GRID_SIZE-1), random.randint(5, 12), random.randint(0, 1)]
+            #check previous gene
+            if new_gene not in gene:
+                gene.append(new_gene)
+
+        return gene
+
 
     def decode(self):
         self.grid = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
