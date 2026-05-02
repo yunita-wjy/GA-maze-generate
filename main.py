@@ -217,6 +217,14 @@ def evolve(population):
 
         child = Maze(child_chrom)
         mutate(child)
+
+        # filter gene duplikat dalam kromosom anak
+        unique_genes = []
+        for g in child.chromosome:
+            if g not in unique_genes:
+                unique_genes.append(g)
+        child.chromosome = unique_genes
+
         child.decode()
         
         child_key = chromosome_key(child.chromosome)
